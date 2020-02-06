@@ -1,5 +1,4 @@
 package algorithms.percolation;
-
 /**
  * @author Cui
  * @create 2020-02-05 13:52
@@ -9,17 +8,22 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
 public class PercolationStats {
-    private final double[] results;
     private final double CONFIDENCE_95 = 1.96;
+    private final double mean;
+    private final double std;
+    private final double diff;
     // perform independent trials on an n-by-n grid
     public PercolationStats(int n, int trials){
         if(n<=0 || trials<=0){
             throw new IllegalArgumentException("size " + n + " or trials " + trials + "out of bounds");
         }
-        results = new double[trials];
+        double[] results = new double[trials];
         for(int i=0; i<trials; i++){
             results[i] = oneTrial(n);
         }
+        mean = StdStats.mean(results);
+        std =  StdStats.stddev(results);
+        diff = CONFIDENCE_95 * stddev() / Math.sqrt(results.length);
     }
 
     private double oneTrial(int n){
@@ -38,22 +42,22 @@ public class PercolationStats {
 
     // sample mean of percolation threshold
     public double mean(){
-        return StdStats.mean(results);
+        return mean;
     }
 
     // sample standard deviation of percolation threshold
     public double stddev(){
-        return StdStats.stddev(results);
+        return std;
     }
 
     // low endpoint of 95% confidence interval
     public double confidenceLo(){
-        return mean() - (CONFIDENCE_95 * stddev() / Math.sqrt(results.length));
+        return mean() - diff;
     }
 
     // high endpoint of 95% confidence interval
     public double confidenceHi(){
-        return mean() + (CONFIDENCE_95 * stddev() / Math.sqrt(results.length));
+        return mean() + diff;
     }
 
     // test client (see below)

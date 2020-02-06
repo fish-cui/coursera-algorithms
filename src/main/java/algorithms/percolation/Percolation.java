@@ -8,7 +8,13 @@ package algorithms.percolation;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    private final WeightedQuickUnionUF unionUF;
+    /**
+     * 避免backwash问题：
+     * 因为所有底层site都与bottom相连
+     * 所以只要一个底层site为full，其他底层site均变为full状态
+     */
+    private final WeightedQuickUnionUF sandwichUF; //申
+    private final WeightedQuickUnionUF umbrellaUF; //由
     private final int topSite;
     private final int bottomSite;
     private final int edge;
@@ -24,7 +30,8 @@ public class Percolation {
         if(n<=0){
             throw new IllegalArgumentException("size " + n + " out of bounds");
         }
-        unionUF = new WeightedQuickUnionUF(n*n+2);
+        sandwichUF = new WeightedQuickUnionUF(n*n+2);
+        umbrellaUF = new WeightedQuickUnionUF(n*n+1);
         topSite =n*n;
         bottomSite =n*n+1;
         edge=n;
@@ -51,10 +58,11 @@ public class Percolation {
          * union top or bottom
          */
         if(row==1){
-            unionUF.union(idx, topSite);
+            sandwichUF.union(idx, topSite);
+            umbrellaUF.union(idx, topSite);
         }
         if(row==edge){
-            unionUF.union(idx, bottomSite);
+            sandwichUF.union(idx, bottomSite);
         }
         /**
          * union neighbour which valid and open
@@ -63,7 +71,8 @@ public class Percolation {
             int r = row+dir[0];
             int c = col+dir[1];
             if(r>=1 && r<=edge && c>=1 && c<=edge && isOpen(r, c)){
-                unionUF.union(idx, getIdx(r, c));
+                sandwichUF.union(idx, getIdx(r, c));
+                umbrellaUF.union(idx, getIdx(r, c));
             }
         }
     }
@@ -80,7 +89,7 @@ public class Percolation {
         validate(row, col);
         int idx = getIdx(row, col);
         if(isOpen(row, col)) {
-            return unionUF.find(idx) == unionUF.find(topSite);
+            return umbrellaUF.find(idx) == umbrellaUF.find(topSite);
         }
         return false;
     }
@@ -92,7 +101,7 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates(){
-        return unionUF.find(topSite)==unionUF.find(bottomSite);
+        return sandwichUF.find(topSite)== sandwichUF.find(bottomSite);
     }
 
     // test client (optional)
